@@ -33,6 +33,18 @@ Sidekiq.configure_server do |config|
 end
 ```
 
+
+Middleware extands listed exceptions with `SidekiqErrorSeparator::Middleware::ImportantException` module if same job
+have been failing with one of this errors for `retries_threshold` times. So you may catch them by the module name.
+
+E.g. you may configure airbrake to log those types of errors only if job have failed `retries_threshold` times in a row:
+
+```ruby
+Airbrake.configure do |config|
+  config.ignore << SidekiqErrorSeparator::Middleware::ImportantException.name 
+end
+```
+
 ## Contributing
 
 1. Fork it ( https://github.com/SPBTV/sidekiq_error_separator/fork )
