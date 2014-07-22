@@ -1,12 +1,12 @@
 # SidekiqErrorSeparator
 
-Mark frequent exceptions as important.
+Label sidekiq exception.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'sidekiq_error_separator'
+    gem 'sidekiq_error_label'
 
 And then execute:
 
@@ -14,40 +14,48 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install sidekiq_error_separator
+    $ gem install sidekiq_error_label
 
 ## Usage
 
-Include middleware to server chain and configure list of errors which should be marked as `ImportantError`. 
+Include middleware to server chain and configure list of errors which should be marked as `SilentException`. 
 
 ```ruby
+module SilentException
+end
+
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
-    chain.add SidekiqErrorSeparator::Middleware, exceptions: [
-      Errno::ECONNRESET,
-      Net::OpenTimeout,
-      Errno::EHOSTUNREACH,
-      Net::ReadTimeout
-    ], retries_threshold: 3
+    chain.add SidekiqErrorLabel::Middleware, 
+        exceptions: [
+          Errno::ECONNRESET,
+          Net::OpenTimeout,
+          Errno::EHOSTUNREACH,
+          Net::ReadTimeout
+        ], 
+        retries_threshold: 3,
+        as: SilentException
   end
 end
 ```
 
 
-Middleware extands listed exceptions with `SidekiqErrorSeparator::Middleware::ImportantException` module if same job
+Middleware extands listed exceptions with `SilentException` module if same job
 have been failing with one of this errors for `retries_threshold` times. So you may catch them by the module name.
 
-E.g. you may configure airbrake to log those types of errors only if job have failed `retries_threshold` times in a row:
+If no `:as` option given exceptions would be labeled with `SidekiqErrorLabel::Middleware::DefaultLabel`
+
+E.g. you may configure Airbrake to log those types of errors only if job have failed `retries_threshold` times in a row:
 
 ```ruby
 Airbrake.configure do |config|
-  config.ignore << SidekiqErrorSeparator::Middleware::ImportantException.name 
+  config.ignore << SilentException 
 end
 ```
 
 ## Contributing
 
-1. Fork it ( https://github.com/SPBTV/sidekiq_error_separator/fork )
+1. Fork it ( https://github.com/SPBTV/sidekiq_error_label/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
