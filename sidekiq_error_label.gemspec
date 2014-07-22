@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'sidekiq_error_separator/version'
+require 'sidekiq_error_label/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "sidekiq_error_separator"
-  spec.version       = SidekiqErrorSeparator::VERSION
+  spec.name          = "sidekiq_error_label"
+  spec.version       = SidekiqErrorLabel::VERSION
   spec.authors       = ["Tema Bolshakov"]
   spec.email         = ["abolshakov@spbtv.com"]
   spec.summary       = %q{Mark frequent exceptions as important.}

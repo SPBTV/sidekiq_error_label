@@ -1,6 +1,6 @@
 require 'sidekiq/worker'
 
-RSpec.describe SidekiqErrorSeparator::Middleware do
+RSpec.describe SidekiqErrorLabel::Middleware do
   let(:worker) do
     Class.new  do
       include ::Sidekiq::Worker
@@ -14,9 +14,9 @@ RSpec.describe SidekiqErrorSeparator::Middleware do
   end
 
   context '#label?' do
-    let(:retries_threshold) { SidekiqErrorSeparator::Middleware::RETRIES_THRESHOLD }
+    let(:retries_threshold) { SidekiqErrorLabel::Middleware::RETRIES_THRESHOLD }
     subject do
-      SidekiqErrorSeparator::Middleware.new exceptions: [exception]
+      SidekiqErrorLabel::Middleware.new exceptions: [exception]
     end
 
     it 'should not #label_exception? if retry_count is not set' do
@@ -39,7 +39,7 @@ RSpec.describe SidekiqErrorSeparator::Middleware do
     end
 
     it 'should count :retries_threshold options' do
-      separator = SidekiqErrorSeparator::Middleware.new exceptions: [exception], retries_threshold: 1
+      separator = SidekiqErrorLabel::Middleware.new exceptions: [exception], retries_threshold: 1
       the_job = job.dup.merge('retry_count' => 1)
       expect(separator.label_exception?(the_job)).to be_falsey
     end
@@ -47,7 +47,7 @@ RSpec.describe SidekiqErrorSeparator::Middleware do
 
   context '#call' do
     subject do
-      SidekiqErrorSeparator::Middleware.new exceptions: [exception]
+      SidekiqErrorLabel::Middleware.new exceptions: [exception]
     end
 
     it 'raise not labeled exception' do
@@ -57,7 +57,7 @@ RSpec.describe SidekiqErrorSeparator::Middleware do
           raise exception
         end
       rescue => error
-        expect(error).not_to be_kind_of SidekiqErrorSeparator::Middleware::DefaultLabel
+        expect(error).not_to be_kind_of SidekiqErrorLabel::Middleware::DefaultLabel
         expect(error).to be_kind_of exception
       end
     end
@@ -69,20 +69,20 @@ RSpec.describe SidekiqErrorSeparator::Middleware do
           raise exception
         end
       rescue => error
-        expect(error).to be_kind_of SidekiqErrorSeparator::Middleware::DefaultLabel
+        expect(error).to be_kind_of SidekiqErrorLabel::Middleware::DefaultLabel
         expect(error).to be_kind_of exception
       end
     end
 
     it 'count :as option' do
-      separator = SidekiqErrorSeparator::Middleware.new exceptions: [exception], as: my_label
+      separator = SidekiqErrorLabel::Middleware.new exceptions: [exception], as: my_label
       expect(separator).to receive(:label_exception?).with(job).and_return(true)
       begin
         separator.call(worker, job, 'default') do
           raise exception
         end
       rescue => error
-        expect(error).not_to be_kind_of SidekiqErrorSeparator::Middleware::DefaultLabel
+        expect(error).not_to be_kind_of SidekiqErrorLabel::Middleware::DefaultLabel
         expect(error).to be_kind_of my_label
         expect(error).to be_kind_of exception
       end

@@ -1,4 +1,4 @@
-class SidekiqErrorSeparator::Middleware
+class SidekiqErrorLabel::Middleware
   module DefaultLabel
   end
   RETRIES_THRESHOLD = 5
