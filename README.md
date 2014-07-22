@@ -1,4 +1,4 @@
-# SidekiqErrorSeparator
+# SidekiqErrorLabel
 
 Label sidekiq exception.
 
