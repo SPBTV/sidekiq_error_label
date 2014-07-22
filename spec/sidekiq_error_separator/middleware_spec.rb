@@ -11,53 +11,63 @@ RSpec.describe SidekiqErrorSeparator::Middleware do
     { 'class' => 'Bob', 'args' => [1,2,'foo'], 'retry' => 2, 'jid' => 'jid-string' }
   end
 
-  context '#call' do
-    subject(:silencer) do
+  context '#label?' do
+    let(:retries_threshold) { SidekiqErrorSeparator::Middleware::RETRIES_THRESHOLD }
+    subject do
       SidekiqErrorSeparator::Middleware.new exceptions: [exception]
     end
 
-    it 'raise silented exception :retries_threshold times' do
-      SidekiqErrorSeparator::Middleware::RETRIES_THRESHOLD.times do |try|
-        expect(silencer).to receive(:retry_number).and_return(try)
-        expect {
-          silencer.call(worker, job, 'default') do
-            raise exception
-          end
-        }.to raise_error(SidekiqErrorSeparator::Middleware::ImportantException)
-      end
+    it 'should not #label_exception? if retry_count is not set' do
+      expect(subject.label_exception?(job.dup)).to be_falsey
     end
 
-    it 'raise not silented exception on :retries_threshold + 1 times' do
-      try = SidekiqErrorSeparator::Middleware::RETRIES_THRESHOLD + 1
-      expect(silencer).to receive(:retry_number).and_return(try)
+    it '#label_exception? if retry_count is less then retries_threshold' do
+      the_job = job.dup.merge('retry_count' => retries_threshold - 1)
+      expect(subject.label_exception?(the_job)).to be_truthy
+    end
 
-      begin
-        silencer.call(worker, job, 'default') do
-          raise exception
-        end
-      rescue => error
-        expect(error).not_to be_kind_of SidekiqErrorSeparator::Middleware::ImportantException
-        expect(error).to be_kind_of exception
-      end
+    it 'should not #label_exception? if retry_count is equals to retries_threshold' do
+      the_job = job.dup.merge('retry_count' => retries_threshold)
+      expect(subject.label_exception?(the_job)).to be_falsey
+    end
+
+    it 'should not #label_exception? if retry_count is greater then retries_threshold' do
+      the_job = job.dup.merge('retry_count' => retries_threshold + 1)
+      expect(subject.label_exception?(the_job)).to be_falsey
+    end
+
+    it 'should count :retries_threshold options' do
+      separator = SidekiqErrorSeparator::Middleware.new exceptions: [exception], retries_threshold: 1
+      the_job = job.dup.merge('retry_count' => 1)
+      expect(separator.label_exception?(the_job)).to be_falsey
     end
   end
 
-  context ':retries_threshold parameter' do
-    let(:retries_threshold) { 1 }
-
-    subject(:silencer) do
-      SidekiqErrorSeparator::Middleware.new exceptions: [exception], retries_threshold: retries_threshold
+  context '#call' do
+    subject do
+      SidekiqErrorSeparator::Middleware.new exceptions: [exception]
     end
 
-    it 'overwrites default value' do
-      expect(silencer).to receive(:retry_number).and_return(retries_threshold)
-
+    it 'raise not labeled exception' do
+      expect(subject).to receive(:label_exception?).and_return(false)
       begin
-        silencer.call(worker, job, 'default') do
+        subject.call(worker, job, 'default') do
           raise exception
         end
       rescue => error
-        expect(error).not_to be_kind_of SidekiqErrorSeparator::Middleware::ImportantException
+        expect(error).not_to be_kind_of SidekiqErrorSeparator::Middleware::DefaultLabel
+        expect(error).to be_kind_of exception
+      end
+    end
+
+    it 'raise labeled exception' do
+      expect(subject).to receive(:label_exception?).and_return(true)
+      begin
+        subject.call(worker, job, 'default') do
+          raise exception
+        end
+      rescue => error
+        expect(error).to be_kind_of SidekiqErrorSeparator::Middleware::DefaultLabel
         expect(error).to be_kind_of exception
       end
     end
