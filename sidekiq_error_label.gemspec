@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = SidekiqErrorLabel::VERSION
   spec.authors       = ["Tema Bolshakov"]
   spec.email         = ["abolshakov@spbtv.com"]
-  spec.summary       = %q{Mark frequent exceptions as important.}
-  spec.description   = %q{Mark frequent exceptions as important.}
-  spec.homepage      = ""
+  spec.summary       = %q{Label sidekiq exception.}
+  spec.description   = %q{Label sidekiq exception.}
+  spec.homepage      = "https://github.com/SPBTV/sidekiq_error_label"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
