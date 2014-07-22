@@ -6,7 +6,9 @@ RSpec.describe SidekiqErrorSeparator::Middleware do
       include ::Sidekiq::Worker
     end
   end
+  let(:my_label) { Module.new }
   let(:exception) { Class.new(StandardError) }
+
   let(:job) do
     { 'class' => 'Bob', 'args' => [1,2,'foo'], 'retry' => 2, 'jid' => 'jid-string' }
   end
@@ -49,7 +51,7 @@ RSpec.describe SidekiqErrorSeparator::Middleware do
     end
 
     it 'raise not labeled exception' do
-      expect(subject).to receive(:label_exception?).and_return(false)
+      expect(subject).to receive(:label_exception?).with(job).and_return(false)
       begin
         subject.call(worker, job, 'default') do
           raise exception
@@ -61,13 +63,27 @@ RSpec.describe SidekiqErrorSeparator::Middleware do
     end
 
     it 'raise labeled exception' do
-      expect(subject).to receive(:label_exception?).and_return(true)
+      expect(subject).to receive(:label_exception?).with(job).and_return(true)
       begin
         subject.call(worker, job, 'default') do
           raise exception
         end
       rescue => error
         expect(error).to be_kind_of SidekiqErrorSeparator::Middleware::DefaultLabel
+        expect(error).to be_kind_of exception
+      end
+    end
+
+    it 'count :as option' do
+      separator = SidekiqErrorSeparator::Middleware.new exceptions: [exception], as: my_label
+      expect(separator).to receive(:label_exception?).with(job).and_return(true)
+      begin
+        separator.call(worker, job, 'default') do
+          raise exception
+        end
+      rescue => error
+        expect(error).not_to be_kind_of SidekiqErrorSeparator::Middleware::DefaultLabel
+        expect(error).to be_kind_of my_label
         expect(error).to be_kind_of exception
       end
     end
