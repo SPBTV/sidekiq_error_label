@@ -57,7 +57,7 @@ RSpec.describe SidekiqErrorLabel::Middleware do
           raise exception
         end
       rescue => error
-        expect(error).not_to be_kind_of SidekiqErrorLabel::Middleware::DefaultLabel
+        expect(error).not_to be_kind_of SidekiqErrorLabel::Middleware.label
         expect(error).to be_kind_of exception
       end
     end
@@ -69,7 +69,7 @@ RSpec.describe SidekiqErrorLabel::Middleware do
           raise exception
         end
       rescue => error
-        expect(error).to be_kind_of SidekiqErrorLabel::Middleware::DefaultLabel
+        expect(error).to be_kind_of SidekiqErrorLabel::Middleware.label
         expect(error).to be_kind_of exception
       end
     end
@@ -82,10 +82,23 @@ RSpec.describe SidekiqErrorLabel::Middleware do
           raise exception
         end
       rescue => error
-        expect(error).not_to be_kind_of SidekiqErrorLabel::Middleware::DefaultLabel
+        expect(error).not_to be_kind_of SidekiqErrorLabel::Middleware.label
         expect(error).to be_kind_of my_label
         expect(error).to be_kind_of exception
       end
+    end
+  end
+
+  context '.label' do
+    it 'create new label' do
+      label = SidekiqErrorLabel::Middleware.label(:default)
+      expect(label).to eq SidekiqErrorLabel::Middleware::Labels::Default
+    end
+
+    it 'return same label if called twice' do
+      label = SidekiqErrorLabel::Middleware.label(:default)
+
+      expect(SidekiqErrorLabel::Middleware.label(:default)).to eq label
     end
   end
 end
