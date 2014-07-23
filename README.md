@@ -43,7 +43,7 @@ end
 Middleware extands listed exceptions with `SilentException` module if same job
 have been failing with one of this errors for `retries_threshold` times. So you may catch them by the module name.
 
-If no `:as` option given exceptions would be labeled with `SidekiqErrorLabel::Middleware::DefaultLabel`
+If no `:as` option given exceptions would be labeled with `SidekiqErrorLabel::Middleware::Labels::Default`
 
 E.g. you may configure Airbrake to log those types of errors only if job have failed `retries_threshold` times in a row:
 
@@ -51,6 +51,13 @@ E.g. you may configure Airbrake to log those types of errors only if job have fa
 Airbrake.configure do |config|
   config.ignore << SilentException 
 end
+```
+
+You may create labels on the fly:
+
+```ruby
+SidekiqErrorLabel::Middleware.label(:default) #=> SidekiqErrorLabel::Middleware::Labels::Default
+SidekiqErrorLabel::Middleware.label(:Silent) #=> SidekiqErrorLabel::Middleware::Labels::Silent
 ```
 
 ## Contributing
