@@ -23,7 +23,7 @@ class SidekiqErrorLabel::Middleware
   end
 
   def label_exception?(job)
-    job['retry_count'] && job['retry_count'] < @retries_threshold
+    job['retry_count'].nil? || job['retry_count'] < @retries_threshold
   end
 
   def self.label(name = :default)
