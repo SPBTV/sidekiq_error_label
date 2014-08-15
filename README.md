@@ -49,7 +49,10 @@ E.g. you may configure Airbrake to log those types of errors only if job have fa
 
 ```ruby
 Airbrake.configure do |config|
-  config.ignore << SilentException 
+  config.ignore_by_filter do |exception_data|
+    exception = exception_data[:exception]
+    exception.present? && exception.kind_of?(SilentException)
+  end
 end
 ```
 
