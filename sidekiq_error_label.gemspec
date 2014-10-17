@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{Label sidekiq exception.}
   spec.description   = %q{Label sidekiq exception.}
   spec.homepage      = "https://github.com/SPBTV/sidekiq_error_label"
-  spec.license       = "MIT"
+  spec.license       = "Apache License, Version 2.0"
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
